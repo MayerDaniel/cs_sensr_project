@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 class File_monitor:
     def __init__(self):
         self.watchlist = []
-        self.get_id()
+        self.id = self.get_id()
 
     '''
     Creates a timestamp in our desired format
@@ -55,12 +55,12 @@ class File_monitor:
     def send_event(self, time, path, event, process, endpoint):
         event_data = {}
         event_data['id'] = self.id
-        event_data['time'] = time
+        event_data['time'] = str(time)
         event_data['path'] = path
         event_data['event'] = event
         event_data['process'] = process
         print(event_data)
-        r = requests.post("http://localhost:8080/" + endpoint, data=event_data)
+        r = requests.post("http://localhost:8080/" + endpoint, json=event_data)
 
     '''
     adds a new file or directory to the watchlist so that

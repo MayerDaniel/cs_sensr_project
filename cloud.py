@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import dflib
+import dflib, json
 
 app = Flask('__name__')
 db = dflib.Database()
@@ -7,14 +7,11 @@ db = dflib.Database()
 
 @app.route('/events',methods=['GET','POST'])
 def receive_events():
-    try:
-        data = request.get_data()
-        print(data)
-    except:
-        traceback.print_exc()
-        return None, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    return '{"status": 200}\n'
+        raw_data = request.get_data()
+        json_data = json.loads(raw_data)
+        print(json_data)
+        db.write_row(json_data)
+        return '{"status": 200}\n'
 
 
 @app.route('/get-id',methods=['GET','POST'])

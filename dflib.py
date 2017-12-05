@@ -14,14 +14,14 @@ def load_obj(name):
 class Database:
 
     def __init__(self):
-        columns = ['Sensor ID', 'Time', 'Path', 'Event', 'Process']
+        self.columns = ['Sensor ID', 'Time', 'Path', 'Event', 'Process']
         if os.path.exists("df.pickle") :
             saved_df = load_obj("df")
             self.dataframe = saved_df.dataframe
             self.last_save = saved_df.last_save
 
         else :
-            self.dataframe = pd.DataFrame(columns=columns)
+            self.dataframe = pd.DataFrame(columns=self.columns)
             self.last_save = datetime.datetime.now()
             save_obj(self, "df")
 
@@ -33,13 +33,16 @@ class Database:
         return new_id
 
     def write_row(self, json):
-        self.dataframe.append([json['id'], json['time'], json['path'], json['event'], json['process']])
+        print('TIME: ' + json['time'])
+        new_row = pd.DataFrame([[json['id'], json['time'], json['path'], json['event'], json['process']]], columns=self.columns )
+        self.dataframe = self.dataframe.append(new_row)
         print(self.dataframe.head())
         self.check_save()
 
     def check_save(self):
         curr_time = datetime.datetime.now()
         difference = curr_time - self.last_save
+        print(difference)
         if difference.total_seconds() > 1:
             print("Database Saved")
             self.last_save = curr_time
