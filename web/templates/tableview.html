@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sensor Data</title>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>TIME</th>
+        <th>PATH</th>
+        <th>EVENT</th>
+        <th>PROCESS</th>
+      </tr>
+      {% for index, row in df.iterrows() %}
+        <tr>
+           <td class="ID">{{ row['Sensor ID'] }}</td>
+           <td class="TIME">{{ row['Time'] }}</td>
+           <td class="PATH">{{ row['Path'] }}</td>
+           <td class="EVENT">{{ row['Event'] }}</td>
+           <td class="PROCESS">{{ row['Process'] }}</td>
+        </tr>
+      {% endfor %}
+    <table>
+
+  </body>
+</html>

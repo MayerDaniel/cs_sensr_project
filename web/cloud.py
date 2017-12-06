@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+
+from flask import Flask, request, jsonify, render_template
 import dflib, json
 
 app = Flask('__name__')
@@ -19,6 +20,10 @@ def get_id():
     new_id = db.add_sensor()
     id_dict = {'id':new_id}
     return jsonify(id_dict)
+
+@app.route('/db-view')
+def frontend():
+    return render_template('tableview.html', df=db.dataframe)
 
 
 if __name__ == '__main__':

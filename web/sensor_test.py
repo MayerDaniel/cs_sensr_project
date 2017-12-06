@@ -59,7 +59,6 @@ class File_monitor:
         event_data['path'] = path
         event_data['event'] = event
         event_data['process'] = process
-        print(event_data)
         r = requests.post("http://localhost:8080/" + endpoint, json=event_data)
 
     '''
@@ -94,8 +93,9 @@ class File_monitor:
 
     def prompt(self):
         while True:
-            file_or_dir = input("Please enter the path of a file or directory you would like watched: ")
+            file_or_dir = input("Enter any directory or file to watch: ")
             self.add_to_watchlist(file_or_dir)
+            print("Added to watch list! If you have another file add below.")
 
 '''
 Creates a CLI to interact with sensor and add to watchlist
