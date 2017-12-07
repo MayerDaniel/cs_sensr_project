@@ -1,7 +1,5 @@
 import pandas as pd
-import os.path
-import datetime
-import pickle
+import os.path, datetime, pickle
 
 def save_obj(obj, name):
     with open(name + '.pickle', 'wb') as f:
@@ -36,14 +34,21 @@ class Database:
         print('TIME: ' + json['time'])
         new_row = pd.DataFrame([[json['id'], json['time'], json['path'], json['event'], json['process']]], columns=self.columns )
         self.dataframe = self.dataframe.append(new_row)
-        print(self.dataframe.head())
         self.check_save()
 
     def check_save(self):
         curr_time = datetime.datetime.now()
         difference = curr_time - self.last_save
-        print(difference)
         if difference.total_seconds() > 1:
             print("Database Saved")
             self.last_save = curr_time
             save_obj(self, "df")
+
+    def write_raw_data(self, sensor_id, path, event, process):
+        new_row = pd.DataFrame([[sensor_id, datetime.datetime.now(datetime.timezone.utc), path, event, process]], columns=self.columns )
+        self.dataframe = self.dataframe.append(new_row)
+        self.check_save()
+
+    def get_path_by_id(self, sensor_id):
+        valid_rows = self.dataframe.loc[(self.dataframe['Sensor ID'] == int(sensor_id)) & (self.dataframe['Event'] == 'SENSOR_CREATED')]
+        return valid_rows['Path'][0]

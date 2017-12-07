@@ -3,7 +3,7 @@ Mini sensor created for CrowdStrike externship
 Created by Tyler Chang and Daniel Mayer
 '''
 import requests, pickle, os.path, os
-import subprocess, time, threading
+import subprocess, time, threading, sched
 from datetime import datetime, timezone
 
 #TODO add ID for sensor
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 class File_monitor:
     def __init__(self):
         self.watchlist = []
-        self.id = self.get_id()
+        self.get_id()
 
     '''
     Creates a timestamp in our desired format
@@ -35,7 +35,9 @@ class File_monitor:
     def get_id(self):
         if os.path.exists("SensorData/id.pickle") :
             f = open("SensorData/id.pickle","r+b")
-            return pickle.load(f)
+            self.id = pickle.load(f)
+            self.send_event(datetime.now(timezone.utc), os.path.realpath(__file__),
+                'SENSOR_RESTARTED', 'SENSOR_INTERNAL_PROCESS')
         else :
             if not os.path.exists("SensorData") :
                 os.makedirs("SensorData")
@@ -46,13 +48,12 @@ class File_monitor:
             f.close()
             self.id = sensor_id
             self.send_event(datetime.now(timezone.utc), os.path.realpath(__file__),
-                'SENSOR_CREATED', 'SENSOR_INTERNAL_PROCESS', 'events')
-            return sensor_id
+                'SENSOR_CREATED', 'SENSOR_INTERNAL_PROCESS')
 
     '''
     constructs event and sends it to a desired endpoint
     '''
-    def send_event(self, time, path, event, process, endpoint):
+    def send_event(self, time, path, event, process, endpoint='events'):
         event_data = {}
         event_data['id'] = self.id
         event_data['time'] = str(time)
@@ -88,7 +89,7 @@ class File_monitor:
                         timestamp = self.get_time(split[0])
                         if timestamp != lastTimestamp : #maybe put more logic here?
                             lastTimestamp = timestamp
-                            self.send_event(timestamp, split[4], split[1], split[6], 'events')
+                            self.send_event(timestamp, split[4], split[1], split[6])
 
 
     def prompt(self):
@@ -96,6 +97,16 @@ class File_monitor:
             file_or_dir = input("Enter any directory or file to watch: ")
             self.add_to_watchlist(file_or_dir)
             print("Added to watch list! If you have another file add below.")
+
+
+    '''
+    Sends a get request every 60 seconds
+    '''
+    def heartbeat(self):
+        while True:
+            r = requests.get("http://localhost:8080/heartbeats?id=" + str(self.id))
+            time.sleep(60)
+
 
 '''
 Creates a CLI to interact with sensor and add to watchlist
@@ -106,10 +117,12 @@ def main():
     print(f.id)
     p = threading.Thread(target=f.prompt)
     threads.append(p)
-    p.start()
     t = threading.Thread(target=f.watch)
     threads.append(t)
-    t.start()
+    h = threading.Thread(target=f.heartbeat)
+    threads.append(h)
+    for thread in threads :
+        thread.start()
 
 
 if __name__ == "__main__":
